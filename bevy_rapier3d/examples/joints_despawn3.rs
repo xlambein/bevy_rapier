@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct DespawnResource {
     entities: Vec<Entity>,
 }
@@ -25,7 +25,7 @@ fn main() {
 }
 
 fn setup_graphics(mut commands: Commands) {
-    commands.spawn_bundle(Camera3dBundle {
+    commands.spawn(Camera3dBundle {
         transform: Transform::from_xyz(15.0, 5.0, 42.0)
             .looking_at(Vec3::new(13.0, 1.0, 1.0), Vec3::Y),
         ..Default::default()
@@ -42,11 +42,11 @@ fn create_prismatic_joints(
     let shift = 1.0;
 
     let mut curr_parent = commands
-        .spawn_bundle(TransformBundle::from(Transform::from_xyz(
-            origin.x, origin.y, origin.z,
-        )))
-        .insert(RigidBody::Fixed)
-        .insert(Collider::cuboid(rad, rad, rad))
+        .spawn((
+            TransformBundle::from(Transform::from_xyz(origin.x, origin.y, origin.z)),
+            RigidBody::Fixed,
+            Collider::cuboid(rad, rad, rad),
+        ))
         .id();
 
     for i in 0..num {
@@ -64,14 +64,12 @@ fn create_prismatic_joints(
         let joint = ImpulseJoint::new(curr_parent, prism);
 
         curr_parent = commands
-            .spawn_bundle(TransformBundle::from(Transform::from_xyz(
-                origin.x,
-                origin.y,
-                origin.z + dz,
-            )))
-            .insert(RigidBody::Dynamic)
-            .insert(Collider::cuboid(rad, rad, rad))
-            .insert(joint)
+            .spawn((
+                TransformBundle::from(Transform::from_xyz(origin.x, origin.y, origin.z + dz)),
+                RigidBody::Dynamic,
+                Collider::cuboid(rad, rad, rad),
+                joint,
+            ))
             .id();
 
         if i == 2 {
@@ -90,11 +88,11 @@ fn create_revolute_joints(
     let shift = 2.0;
 
     let mut curr_parent = commands
-        .spawn_bundle(TransformBundle::from(Transform::from_xyz(
-            origin.x, origin.y, 0.0,
-        )))
-        .insert(RigidBody::Fixed)
-        .insert(Collider::cuboid(rad, rad, rad))
+        .spawn((
+            TransformBundle::from(Transform::from_xyz(origin.x, origin.y, 0.0)),
+            RigidBody::Fixed,
+            Collider::cuboid(rad, rad, rad),
+        ))
         .id();
 
     for i in 0..num {
@@ -110,11 +108,11 @@ fn create_revolute_joints(
         let mut handles = [curr_parent; 4];
         for k in 0..4 {
             handles[k] = commands
-                .spawn_bundle(TransformBundle::from(Transform::from_translation(
-                    positions[k],
-                )))
-                .insert(RigidBody::Dynamic)
-                .insert(Collider::cuboid(rad, rad, rad))
+                .spawn((
+                    TransformBundle::from(Transform::from_translation(positions[k])),
+                    RigidBody::Dynamic,
+                    Collider::cuboid(rad, rad, rad),
+                ))
                 .id();
         }
 
@@ -179,13 +177,15 @@ fn create_fixed_joints(
             };
 
             let child_entity = commands
-                .spawn_bundle(TransformBundle::from(Transform::from_xyz(
-                    origin.x + fk * shift,
-                    origin.y,
-                    origin.z + fi * shift,
-                )))
-                .insert(rigid_body)
-                .insert(Collider::ball(rad))
+                .spawn((
+                    TransformBundle::from(Transform::from_xyz(
+                        origin.x + fk * shift,
+                        origin.y,
+                        origin.z + fi * shift,
+                    )),
+                    rigid_body,
+                    Collider::ball(rad),
+                ))
                 .id();
 
             // Vertical joint.
@@ -196,9 +196,7 @@ fn create_fixed_joints(
                     // NOTE: we want to attach multiple impulse joints to this entity, so
                     //       we need to add the components to children of the entity. Otherwise
                     //       the second joint component would just overwrite the first one.
-                    children
-                        .spawn()
-                        .insert(ImpulseJoint::new(parent_entity, joint));
+                    children.spawn(ImpulseJoint::new(parent_entity, joint));
                 });
             }
 
@@ -211,10 +209,7 @@ fn create_fixed_joints(
                     // NOTE: we want to attach multiple impulse joints to this entity, so
                     //       we need to add the components to children of the entity. Otherwise
                     //       the second joint component would just overwrite the first one.
-                    let entity = children
-                        .spawn()
-                        .insert(ImpulseJoint::new(parent_entity, joint))
-                        .id();
+                    let entity = children.spawn(ImpulseJoint::new(parent_entity, joint)).id();
                     despawn.entities.push(entity);
                 });
             }
@@ -242,13 +237,11 @@ fn create_ball_joints(commands: &mut Commands, num: usize, despawn: &mut Despawn
             };
 
             let child_entity = commands
-                .spawn_bundle(TransformBundle::from(Transform::from_xyz(
-                    fk * shift,
-                    0.0,
-                    fi * shift,
-                )))
-                .insert(rigid_body)
-                .insert(Collider::ball(rad))
+                .spawn((
+                    TransformBundle::from(Transform::from_xyz(fk * shift, 0.0, fi * shift)),
+                    rigid_body,
+                    Collider::ball(rad),
+                ))
                 .id();
 
             // Vertical joint.
@@ -259,10 +252,7 @@ fn create_ball_joints(commands: &mut Commands, num: usize, despawn: &mut Despawn
                     // NOTE: we want to attach multiple impulse joints to this entity, so
                     //       we need to add the components to children of the entity. Otherwise
                     //       the second joint component would just overwrite the first one.
-                    let entity = children
-                        .spawn()
-                        .insert(ImpulseJoint::new(parent_entity, joint))
-                        .id();
+                    let entity = children.spawn(ImpulseJoint::new(parent_entity, joint)).id();
                     if i == 2 {
                         despawn.entities.push(entity);
                     }
@@ -278,9 +268,7 @@ fn create_ball_joints(commands: &mut Commands, num: usize, despawn: &mut Despawn
                     // NOTE: we want to attach multiple impulse joints to this entity, so
                     //       we need to add the components to children of the entity. Otherwise
                     //       the second joint component would just overwrite the first one.
-                    children
-                        .spawn()
-                        .insert(ImpulseJoint::new(parent_entity, joint));
+                    children.spawn(ImpulseJoint::new(parent_entity, joint));
                 });
             }
 

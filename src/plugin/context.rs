@@ -13,7 +13,7 @@ use rapier::prelude::{
 use crate::geometry::{Collider, PointProjection, RayIntersection, Toi};
 use crate::math::{Rot, Vect};
 use crate::pipeline::{CollisionEvent, ContactForceEvent, EventQueue, QueryFilter};
-use bevy::prelude::{Entity, EventWriter, GlobalTransform, Query};
+use bevy::prelude::{Entity, EventWriter, GlobalTransform, Query, Resource};
 use bevy::render::primitives::Aabb;
 
 use crate::control::{CharacterCollision, MoveShapeOptions, MoveShapeOutput};
@@ -26,6 +26,7 @@ use rapier::control::CharacterAutostep;
 
 /// The Rapier context, containing all the state of the physics engine.
 #[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
+#[derive(Resource)]
 pub struct RapierContext {
     /// The island manager, which detects what object is sleeping
     /// (not moving much) to reduce computations.

@@ -37,6 +37,7 @@ impl Stage for SpecialStage {
     }
 }
 
+#[derive(Resource)]
 struct FrameCount(u32);
 
 fn main() {
@@ -123,7 +124,7 @@ fn despawn_one_box(
 }
 
 fn setup_graphics(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle {
+    commands.spawn(Camera2dBundle {
         transform: Transform::from_xyz(0.0, 20.0, 0.0),
         ..default()
     });
@@ -136,13 +137,10 @@ pub fn setup_physics(mut commands: Commands) {
     let ground_size = 500.0;
     let ground_height = 10.0;
 
-    commands
-        .spawn_bundle(TransformBundle::from(Transform::from_xyz(
-            0.0,
-            0.0 * -ground_height,
-            0.0,
-        )))
-        .insert(Collider::cuboid(ground_size, ground_height));
+    commands.spawn((
+        TransformBundle::from(Transform::from_xyz(0.0, 0.0 * -ground_height, 0.0)),
+        Collider::cuboid(ground_size, ground_height),
+    ));
 
     /*
      * Create the cubes
@@ -161,10 +159,11 @@ pub fn setup_physics(mut commands: Commands) {
             let x = i as f32 * shift - centerx + offset;
             let y = j as f32 * shift + centery + 30.0;
 
-            commands
-                .spawn_bundle(TransformBundle::from(Transform::from_xyz(x, y, 0.0)))
-                .insert(RigidBody::Dynamic)
-                .insert(Collider::cuboid(rad, rad));
+            commands.spawn((
+                TransformBundle::from(Transform::from_xyz(x, y, 0.0)),
+                RigidBody::Dynamic,
+                Collider::cuboid(rad, rad),
+            ));
         }
 
         offset -= 0.05 * rad * (num as f32 - 1.0);

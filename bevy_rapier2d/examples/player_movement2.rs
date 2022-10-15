@@ -24,25 +24,25 @@ struct Player(f32);
 fn spawn_player(mut commands: Commands, mut rapier_config: ResMut<RapierConfiguration>) {
     // Set gravity to 0.0 and spawn camera.
     rapier_config.gravity = Vec2::ZERO;
-    commands.spawn().insert_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let sprite_size = 100.0;
 
     // Spawn entity with `Player` struct as a component for access in movement query.
-    commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
+    commands.spawn((
+        SpriteBundle {
             sprite: Sprite {
                 color: Color::rgb(0.0, 0.0, 0.0),
                 custom_size: Some(Vec2::new(sprite_size, sprite_size)),
                 ..Default::default()
             },
             ..Default::default()
-        })
-        .insert(RigidBody::Dynamic)
-        .insert(Velocity::zero())
-        .insert(Collider::ball(sprite_size / 2.0))
-        .insert(Player(100.0));
+        },
+        RigidBody::Dynamic,
+        Velocity::zero(),
+        Collider::ball(sprite_size / 2.0),
+        Player(100.0),
+    ));
 }
 
 fn player_movement(

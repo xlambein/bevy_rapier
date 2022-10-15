@@ -55,6 +55,7 @@ pub struct AsyncSceneCollider {
 /// Shape type based on a Bevy mesh asset.
 #[cfg(feature = "dim3")]
 #[derive(Debug, Clone, Reflect)]
+#[reflect_value]
 pub enum ComputedColliderShape {
     /// Triangle-mesh.
     TriMesh,

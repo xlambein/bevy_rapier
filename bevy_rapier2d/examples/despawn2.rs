@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct DespawnResource {
     pub entities: Vec<Entity>,
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct ResizeResource {
     pub entities: Vec<Entity>,
 }
@@ -32,7 +32,7 @@ fn main() {
 }
 
 fn setup_graphics(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle {
+    commands.spawn(Camera2dBundle {
         transform: Transform::from_xyz(0.0, 20.0, 0.0),
         ..default()
     });
@@ -48,27 +48,18 @@ pub fn setup_physics(
      */
     let ground_size = 250.0;
 
-    let entity = commands
-        .spawn()
-        .insert(Collider::cuboid(ground_size, 12.0))
-        .id();
+    let entity = commands.spawn(Collider::cuboid(ground_size, 12.0)).id();
     despawn.entities.push(entity);
 
-    commands
-        .spawn_bundle(TransformBundle::from(Transform::from_xyz(
-            ground_size,
-            ground_size * 2.0,
-            0.0,
-        )))
-        .insert(Collider::cuboid(12.0, ground_size * 2.0));
+    commands.spawn((
+        TransformBundle::from(Transform::from_xyz(ground_size, ground_size * 2.0, 0.0)),
+        Collider::cuboid(12.0, ground_size * 2.0),
+    ));
 
-    commands
-        .spawn_bundle(TransformBundle::from(Transform::from_xyz(
-            -ground_size,
-            ground_size * 2.0,
-            0.0,
-        )))
-        .insert(Collider::cuboid(12.0, ground_size * 2.0));
+    commands.spawn((
+        TransformBundle::from(Transform::from_xyz(-ground_size, ground_size * 2.0, 0.0)),
+        Collider::cuboid(12.0, ground_size * 2.0),
+    ));
 
     /*
      * Create the cubes
@@ -86,9 +77,11 @@ pub fn setup_physics(
             let y = j as f32 * shift + centery + 2.0;
 
             let entity = commands
-                .spawn_bundle(TransformBundle::from(Transform::from_xyz(x, y, 0.0)))
-                .insert(RigidBody::Dynamic)
-                .insert(Collider::cuboid(rad, rad))
+                .spawn((
+                    TransformBundle::from(Transform::from_xyz(x, y, 0.0)),
+                    RigidBody::Dynamic,
+                    Collider::cuboid(rad, rad),
+                ))
                 .id();
 
             if (i + j * num) % 100 == 0 {
